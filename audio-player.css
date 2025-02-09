@@ -1,0 +1,61 @@
+/* Estilos para el reproductor de música */
+.player-container {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px;
+    border-radius: 10px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 9999; /* Asegura que esté por encima de otros elementos */
+}
+
+input[type=range] {
+    width: 100px;
+    -webkit-appearance: none;
+    background: #ddd;
+    border-radius: 5px;
+    height: 5px;
+    outline: none;
+    cursor: pointer;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+input[type=range]:focus {
+    background: #ccc;
+}
+
+.volume-icon {
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.play-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* Estilos adicionales para la animación de los íconos */
+input[type=range]::-webkit-slider-runnable-track {
+    background: #888;
+    border-radius: 5px;
+}
+
+input[type=range]:active::-webkit-slider-runnable-track {
+    background: #555;
+}
