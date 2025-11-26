@@ -16,8 +16,6 @@
             --pack-height: calc(var(--pack-width) * 1.45);
             --card-width: calc(var(--pack-width) * 0.9);
             --card-height: calc(var(--pack-height) * 0.85);
-            
-            /* Colores */
             --neon-pink: #ff1493;
             --neon-glow: #ff69b4;
             --gold-sparkle: #ffd700;
@@ -26,42 +24,52 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
 
+        html, body {
+            width: 100%;
+            /* Usamos dvh para móviles modernos, fallback a 100vh */
+            height: 100vh; 
+            height: 100dvh; 
+            overflow: hidden; /* El scroll principal bloqueado, scroll interno habilitado */
+            position: fixed; /* Fija el body para evitar rebote elástico en iOS */
+        }
+
         body {
             font-family: 'Segoe UI', sans-serif;
             background-color: var(--bg-color);
             background-image: 
                 radial-gradient(circle at 15% 50%, rgba(255, 105, 180, 0.1) 0%, transparent 25%),
                 radial-gradient(circle at 85% 30%, rgba(100, 149, 237, 0.1) 0%, transparent 25%);
-            height: 100vh; width: 100vw;
-            overflow: hidden;
+        }
+
+        #app {
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             position: relative;
         }
 
-        /* --- VISTAS --- */
+        /* --- VISTAS (FIXED POSITIONING) --- */
         .view-section {
-            position: absolute;
-            top: 0; left: 0;
+            position: fixed; /* CAMBIO: Fixed es más robusto para overlays móviles */
+            top: 0; left: 0; right: 0; bottom: 0;
             width: 100%; height: 100%;
             display: none; 
             flex-direction: column;
             align-items: center;
-            /* justify-content: center; <--- ELIMINADO PARA PERMITIR SCROLL NATURAL */
             opacity: 0;
             transition: opacity 0.4s ease;
+            z-index: 10;
         }
 
         .view-section.active {
             display: flex;
             opacity: 1;
-            z-index: 10;
         }
 
         /* --- VISTA 1: APERTURA --- */
         #view-opening {
-            /* Esta vista principal no lleva scroll por defecto, lo manejamos en los contenedores internos si es necesario */
-            perspective: 1200px;
-            overflow: hidden; 
-            justify-content: center; /* El sobre sí va centrado */
+            justify-content: center; /* Centrado vertical para el sobre */
+            overflow: hidden; /* Sin scroll aquí para evitar mover el sobre */
         }
 
         /* --- EL SOBRE --- */
@@ -177,20 +185,20 @@
 
         /* --- GRID FINAL (CORREGIDO PARA SCROLL) --- */
         .final-grid-container {
-            position: absolute; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%;
+            position: fixed; /* CAMBIO: Fixed para forzar el contenedor sobre el body */
+            top: 0; left: 0; right: 0; bottom: 0; /* Ocupar toda la pantalla */
             display: none; 
             flex-direction: column; 
             
-            /* CAMBIO: Alineación arriba para permitir scroll */
+            /* Alineación superior para permitir scroll */
             justify-content: flex-start; 
             align-items: center;
             
-            /* CAMBIO: Padding superior para que no quede pegado y scroll activado */
             padding-top: 60px; 
+            /* Propiedades mágicas para scroll móvil */
             overflow-y: auto; 
-            -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+            -webkit-overflow-scrolling: touch; 
+            overscroll-behavior: contain;
             
             z-index: 30; 
             opacity: 0; 
@@ -203,8 +211,9 @@
             justify-content: center; 
             gap: 15px; 
             width: 100%; 
-            /* Espacio abajo para que los botones no estorben al hacer scroll */
             padding-bottom: 40px;
+            /* Asegura que el contenido tenga altura para scrollear */
+            min-height: min-content; 
         }
         
         .grid-card {
@@ -213,6 +222,8 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.5); border: 3px solid white; cursor: zoom-in;
             opacity: 0; transform: translateY(20px);
             transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            /* Evita que el hover rompa el layout */
+            flex-shrink: 0; 
         }
         .grid-card:hover {
             transform: translateY(0) scale(1.1);
@@ -223,12 +234,13 @@
         /* --- BOTONES --- */
         .action-buttons {
             margin-top: 30px;
-            margin-bottom: 60px; /* Espacio extra al final del scroll */
+            margin-bottom: 100px; /* Mucho espacio abajo para asegurar visibilidad */
             display: flex;
             gap: 15px;
             justify-content: center;
             flex-wrap: wrap; 
             width: 100%;
+            flex-shrink: 0;
         }
 
         .btn-general {
@@ -284,22 +296,16 @@
         }
 
         .view-title { 
-            font-size: 1.8rem; 
-            font-weight: bold; 
-            color: white; 
+            font-size: 1.8rem; font-weight: bold; color: white; 
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         .btn-back { 
-            background: none; 
-            border: none; 
-            font-size: 1.5rem; 
-            cursor: pointer; 
-            color: white;
+            background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white;
             text-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
 
-        /* --- VISTA 2: KANDIDEX --- */
+        /* --- VISTA 2: KANDIDEX (SCROLL FIX) --- */
         #view-kandidex {
             background: transparent;
             overflow-y: auto; 
@@ -308,8 +314,8 @@
             flex-direction: column;
             justify-content: flex-start;
             align-items: center;
-            padding-top: 0; /* Header ya tiene padding o es sticky */
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            padding-top: 0; 
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; /* FIXED */
             z-index: 200;
         }
 
@@ -319,7 +325,7 @@
             padding: 15px;
             gap: 10px;
             grid-template-columns: repeat(3, 1fr);
-            padding-bottom: 80px; /* Espacio al final */
+            padding-bottom: 100px; /* Margen seguro */
         }
 
         @media (min-width: 768px) {
@@ -345,39 +351,26 @@
         }
         
         .dex-card.card-shine::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 300%; 
-            height: 100%;
+            content: ''; position: absolute; top: 0; left: 0; width: 300%; height: 100%;
             background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.4) 60%, transparent 70%);
             animation: singleLightPass 3s infinite ease-in-out;
             animation-delay: var(--shine-delay);
-            pointer-events: none;
-            z-index: 1;
-            will-change: transform;
+            pointer-events: none; z-index: 1; will-change: transform;
         }
         
         .dex-card:hover { 
-            transform: scale(1.1); 
-            z-index: 10; 
+            transform: scale(1.1); z-index: 10; 
             box-shadow: 0 0 15px var(--neon-pink), 0 0 30px var(--neon-glow);
             border-color: var(--neon-pink);
         }
 
         .dex-num {
-            position: absolute;
-            bottom: 0; left: 0; width: 100%;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            font-size: 0.7rem;
-            text-align: center;
-            padding: 2px 0;
-            border-radius: 0 0 8px 8px;
-            z-index: 5; 
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: rgba(0,0,0,0.7); color: white; font-size: 0.7rem;
+            text-align: center; padding: 2px 0; border-radius: 0 0 8px 8px; z-index: 5; 
         }
 
-        /* --- VISTA 3: RECUERDOS (Diseño Vertical) --- */
+        /* --- VISTA 3: RECUERDOS (SCROLL FIX) --- */
         #view-recuerdos {
             background: transparent;
             overflow-y: auto; 
@@ -387,7 +380,7 @@
             justify-content: flex-start;
             align-items: center;
             padding-top: 0;
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; /* FIXED */
             z-index: 200;
         }
 
@@ -398,7 +391,7 @@
             width: 100%;
             padding: 20px;
             gap: 40px;
-            padding-bottom: 100px;
+            padding-bottom: 120px; /* Margen seguro */
         }
 
         .memory-card {
@@ -415,16 +408,10 @@
         }
 
         @media (min-width: 768px) {
-            .memory-card {
-                max-width: 600px;
-            }
+            .memory-card { max-width: 600px; }
         }
 
-        .memory-card img {
-            display: block;
-            width: 100%;
-            height: auto;
-        }
+        .memory-card img { display: block; width: 100%; height: auto; }
 
         .memory-card:hover {
             transform: scale(1.02);
@@ -434,27 +421,16 @@
         }
 
         .memory-card.card-shine::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 300%; 
-            height: 100%;
+            content: ''; position: absolute; top: 0; left: 0; width: 300%; height: 100%;
             background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.4) 60%, transparent 70%);
             animation: singleLightPass 4s infinite ease-in-out; 
             animation-delay: var(--shine-delay);
-            pointer-events: none;
-            z-index: 1;
+            pointer-events: none; z-index: 1;
         }
 
         .memory-label {
-            position: absolute;
-            bottom: 0; width: 100%;
-            padding: 10px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            text-align: center;
-            font-weight: bold;
-            z-index: 5;
+            position: absolute; bottom: 0; width: 100%; padding: 10px;
+            background: rgba(0,0,0,0.7); color: white; text-align: center; font-weight: bold; z-index: 5;
         }
 
     </style>
@@ -474,7 +450,7 @@
 
         <div class="cards-area" id="cardsArea"></div>
 
-        <!-- CONTENEDOR FINAL CON SCROLL ACTIVADO -->
+        <!-- CONTENEDOR FINAL -->
         <div class="final-grid-container" id="finalGrid">
             <div class="grid-cards-wrapper" id="gridWrapper"></div>
             <div class="action-buttons">
@@ -513,6 +489,7 @@
     </div>
 
     <script>
+        // Configuración de cartas de juego
         const cardImages = ['152.png', '153.png', '154.png', '155.png', '156.png'];
         const memoryImages = ['recuerdo1.png', 'recuerdo2.png', 'recuerdo3.png', 'recuerdo4.png'];
 
@@ -573,8 +550,6 @@
             setTimeout(() => {
                 section.style.display = 'none';
                 viewOpening.style.display = 'flex';
-                // Aseguramos que el contenedor opening reaparezca
-                // pero sin re-animar todo si ya estaba
                 setTimeout(() => viewOpening.classList.add('active'), 10);
             }, 400);
         }
@@ -777,9 +752,12 @@
             cardsArea.style.opacity = "0";
             setTimeout(() => {
                 cardsArea.style.display = "none";
+                
+                // CAMBIO: Mostrar y forzar scroll
                 finalGrid.style.display = "flex";
-                void finalGrid.offsetWidth;
                 finalGrid.style.opacity = "1";
+                finalGrid.scrollTop = 0; // Reset scroll al inicio
+                
                 for(let i = 0; i < cardImages.length; i++) {
                     const gridCard = document.createElement('div');
                     gridCard.className = 'grid-card';
