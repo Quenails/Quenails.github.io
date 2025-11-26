@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <!-- CAMBIO 1: TÍTULO PERSONALIZADO -->
     <title>Happy Birthday Kandi</title>
     
-    <!-- CAMBIO 2: ICONO DE PASTEL (FAVICON) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎂</text></svg>">
 
     <style>
@@ -47,7 +45,7 @@
             display: none; 
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            /* justify-content: center; <--- ELIMINADO PARA PERMITIR SCROLL NATURAL */
             opacity: 0;
             transition: opacity 0.4s ease;
         }
@@ -60,8 +58,10 @@
 
         /* --- VISTA 1: APERTURA --- */
         #view-opening {
+            /* Esta vista principal no lleva scroll por defecto, lo manejamos en los contenedores internos si es necesario */
             perspective: 1200px;
-            overflow: hidden;
+            overflow: hidden; 
+            justify-content: center; /* El sobre sí va centrado */
         }
 
         /* --- EL SOBRE --- */
@@ -175,13 +175,37 @@
         .sliding-state { transform: translateX(200vw) rotate(15deg) !important; opacity: 0; pointer-events: none; }
         .non-clickable { pointer-events: none; }
 
-        /* --- GRID FINAL --- */
+        /* --- GRID FINAL (CORREGIDO PARA SCROLL) --- */
         .final-grid-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: none; flex-direction: column; justify-content: center; align-items: center;
-            padding: 20px; z-index: 30; opacity: 0; transition: opacity 0.5s ease-in;
+            position: absolute; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%;
+            display: none; 
+            flex-direction: column; 
+            
+            /* CAMBIO: Alineación arriba para permitir scroll */
+            justify-content: flex-start; 
+            align-items: center;
+            
+            /* CAMBIO: Padding superior para que no quede pegado y scroll activado */
+            padding-top: 60px; 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+            
+            z-index: 30; 
+            opacity: 0; 
+            transition: opacity 0.5s ease-in;
         }
-        .grid-cards-wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; width: 100%; }
+        
+        .grid-cards-wrapper { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 15px; 
+            width: 100%; 
+            /* Espacio abajo para que los botones no estorben al hacer scroll */
+            padding-bottom: 40px;
+        }
         
         .grid-card {
             width: 46vw; height: 64vw; max-width: 200px; max-height: 280px;
@@ -199,10 +223,12 @@
         /* --- BOTONES --- */
         .action-buttons {
             margin-top: 30px;
+            margin-bottom: 60px; /* Espacio extra al final del scroll */
             display: flex;
             gap: 15px;
             justify-content: center;
             flex-wrap: wrap; 
+            width: 100%;
         }
 
         .btn-general {
@@ -277,11 +303,12 @@
         #view-kandidex {
             background: transparent;
             overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
             display: none; 
             flex-direction: column;
             justify-content: flex-start;
             align-items: center;
-            padding-top: 20px;
+            padding-top: 0; /* Header ya tiene padding o es sticky */
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 200;
         }
@@ -292,7 +319,7 @@
             padding: 15px;
             gap: 10px;
             grid-template-columns: repeat(3, 1fr);
-            padding-bottom: 50px;
+            padding-bottom: 80px; /* Espacio al final */
         }
 
         @media (min-width: 768px) {
@@ -354,16 +381,16 @@
         #view-recuerdos {
             background: transparent;
             overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
             display: none; 
             flex-direction: column;
             justify-content: flex-start;
             align-items: center;
-            padding-top: 20px;
+            padding-top: 0;
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 200;
         }
 
-        /* Contenedor flexible vertical para las imágenes de tamaño original */
         .memories-feed {
             display: flex;
             flex-direction: column;
@@ -374,11 +401,10 @@
             padding-bottom: 100px;
         }
 
-        /* Tarjeta de recuerdo personalizada */
         .memory-card {
             position: relative;
             width: auto;
-            max-width: 90%; /* Móvil: no desbordar */
+            max-width: 90%; 
             border-radius: 12px;
             background-color: #2a2a2a;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -388,21 +414,18 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
         }
 
-        /* En PC limitamos el ancho máximo para que no sean gigantescas */
         @media (min-width: 768px) {
             .memory-card {
                 max-width: 600px;
             }
         }
 
-        /* Imagen dentro de la tarjeta (mantiene proporción original) */
         .memory-card img {
             display: block;
             width: 100%;
             height: auto;
         }
 
-        /* Efecto Hover y Brillo (Reutilizado) */
         .memory-card:hover {
             transform: scale(1.02);
             box-shadow: 0 0 20px var(--neon-pink), 0 0 40px var(--neon-glow);
@@ -410,7 +433,6 @@
             z-index: 10;
         }
 
-        /* Brillo en recuerdos */
         .memory-card.card-shine::after {
             content: '';
             position: absolute;
@@ -418,13 +440,12 @@
             width: 300%; 
             height: 100%;
             background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.4) 60%, transparent 70%);
-            animation: singleLightPass 4s infinite ease-in-out; /* Un poco más lento por ser grandes */
+            animation: singleLightPass 4s infinite ease-in-out; 
             animation-delay: var(--shine-delay);
             pointer-events: none;
             z-index: 1;
         }
 
-        /* Etiqueta de texto opcional */
         .memory-label {
             position: absolute;
             bottom: 0; width: 100%;
@@ -453,6 +474,7 @@
 
         <div class="cards-area" id="cardsArea"></div>
 
+        <!-- CONTENEDOR FINAL CON SCROLL ACTIVADO -->
         <div class="final-grid-container" id="finalGrid">
             <div class="grid-cards-wrapper" id="gridWrapper"></div>
             <div class="action-buttons">
@@ -483,7 +505,6 @@
             <div class="view-title">Recuerdos</div>
             <div style="width: 24px;"></div> 
         </div>
-        <!-- Contenedor flexible vertical -->
         <div class="memories-feed" id="memoriesFeed"></div>
     </div>
 
@@ -492,13 +513,9 @@
     </div>
 
     <script>
-        // Configuración de cartas de juego
         const cardImages = ['152.png', '153.png', '154.png', '155.png', '156.png'];
-        
-        // Imágenes de Recuerdos (Agregado recuerdo4.png)
         const memoryImages = ['recuerdo1.png', 'recuerdo2.png', 'recuerdo3.png', 'recuerdo4.png'];
 
-        // DOM Elements
         const viewOpening = document.getElementById('view-opening');
         const viewKandidex = document.getElementById('view-kandidex');
         const viewRecuerdos = document.getElementById('view-recuerdos');
@@ -530,7 +547,7 @@
             audio.play().catch(e => console.log("Audio error:", e));
         }
 
-        // --- NAVEGACIÓN GENERAL ---
+        // --- NAVEGACIÓN ---
         function openKandidex() {
             openSection(viewKandidex);
             if (dexGrid.children.length === 0) populateKandidex();
@@ -556,11 +573,12 @@
             setTimeout(() => {
                 section.style.display = 'none';
                 viewOpening.style.display = 'flex';
+                // Aseguramos que el contenedor opening reaparezca
+                // pero sin re-animar todo si ya estaba
                 setTimeout(() => viewOpening.classList.add('active'), 10);
             }, 400);
         }
 
-        // --- POPULATE KANDIDEX ---
         function populateKandidex() {
             const total = 156; 
             for (let i = 1; i <= total; i++) {
@@ -582,17 +600,13 @@
             }
         }
 
-        // --- POPULATE RECUERDOS (NUEVO LÓGICA VERTICAL & TAMAÑO ORIGINAL) ---
         function populateRecuerdos() {
             memoryImages.forEach((imgName, index) => {
                 const card = document.createElement('div');
                 card.className = 'memory-card card-shine';
-                
-                // Retraso aleatorio para brillo
                 const randomDelay = Math.random() * 3; 
                 card.style.setProperty('--shine-delay', `${randomDelay}s`);
 
-                // Usamos IMG tag para respetar el tamaño real
                 const img = document.createElement('img');
                 img.src = imgName;
                 img.alt = `Recuerdo ${index + 1}`;
@@ -604,7 +618,6 @@
                 card.appendChild(img);
                 card.appendChild(label);
 
-                // Clic: quitar brillo y abrir zoom
                 card.onclick = () => {
                     card.classList.remove('card-shine');
                     openLightbox(imgName);
@@ -614,7 +627,6 @@
             });
         }
 
-        // --- LÓGICA DE JUEGO (Igual que antes) ---
         function triggerGoldExplosion(container) {
             for (let i = 0; i < 35; i++) {
                 const sparkle = document.createElement('div');
