@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Birthday Pack V29: Recuerdos Vertical</title>
+    <style>
+        /* --- 1. CONFIGURACIÓN --- */
+        :root {
+            --bg-color: #121212;
+            --pack-width: clamp(300px, 85vw, 480px);
+            --pack-height: calc(var(--pack-width) * 1.45);
+            --card-width: calc(var(--pack-width) * 0.9);
+            --card-height: calc(var(--pack-height) * 0.85);
+            
+            /* Colores */
+            --neon-pink: #ff1493;
+            --neon-glow: #ff69b4;
+            --gold-sparkle: #ffd700;
+            --ui-bg: #f0f4f8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(255, 105, 180, 0.1) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(100, 149, 237, 0.1) 0%, transparent 25%);
+            height: 100vh; width: 100vw;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- VISTAS --- */
+        .view-section {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: none; 
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .view-section.active {
+            display: flex;
+            opacity: 1;
+            z-index: 10;
+        }
+
+        /* --- VISTA 1: APERTURA --- */
+        #view-opening {
+            perspective: 1200px;
+            overflow: hidden;
+        }
+
+        /* --- EL SOBRE --- */
+        .pack-container {
+            position: relative;
+            width: var(--pack-width);
+            height: var(--pack-height);
+            z-index: 10;
+            transform-style: preserve-3d;
+            transition: transform 0.2s ease-out;
+            border-radius: 18px;
+        }
+        .pack-container.idle { animation: float 4s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+
+        .pack-body, .pack-top {
+            position: absolute; left: 0; width: 100%;
+            background-image: url('Sobre.png'); 
+            z-index: 2; overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+        }
+        .pack-body { bottom: 0; height: 85%; background-size: 100% 117.6%; background-position: bottom center; border-radius: 0 0 18px 18px; }
+        .pack-top { top: 0; height: 15%; background-size: 100% 666%; background-position: top center; border-radius: 18px 18px 0 0; z-index: 5; transform-origin: bottom left; }
+        
+        .rip-line {
+            position: absolute; top: 15%; left: 0; width: 100%; height: 3px;
+            background: rgba(255,255,255,0.3);
+            border-bottom: 2px dashed rgba(255,255,255,0.8);
+            z-index: 4; display: none;
+        }
+
+        .global-shine {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 6; border-radius: 18px; overflow: hidden; pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        .global-shine::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 300%; height: 100%;
+            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.1) 60%, transparent 70%);
+            animation: singleLightPass 2.5s infinite ease-in-out;
+        }
+        @keyframes singleLightPass { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+        /* --- CARTAS --- */
+        .cards-area {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; justify-content: center; align-items: center;
+            perspective: 1000px; z-index: 20;
+        }
+
+        .card-wrapper {
+            width: var(--card-width);
+            height: var(--card-height);
+            position: absolute;
+            cursor: pointer;
+            transition: transform 1.5s cubic-bezier(0.55, 0.055, 0.675, 0.19), opacity 1.2s ease-in;
+        }
+
+        .card-inner {
+            width: 100%; height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .card-face {
+            position: absolute; width: 100%; height: 100%;
+            border-radius: 16px; 
+            backface-visibility: hidden; -webkit-backface-visibility: hidden;
+            overflow: hidden;
+        }
+
+        .card-back {
+            background-color: #ffc2d1; 
+            background-image: radial-gradient(#ff6b6b 15%, transparent 16%), radial-gradient(#4ecdc4 15%, transparent 16%), radial-gradient(#ffe66d 15%, transparent 16%), radial-gradient(white 15%, transparent 16%);
+            background-size: 80px 80px; background-position: 0 0, 40px 40px, 20px 60px, 60px 20px;
+            border: 6px solid #fff;
+            display: flex; justify-content: center; align-items: center;
+            transform: rotateY(0deg);
+        }
+        .card-back::after { content: '🎂'; font-size: 7rem; animation: bounce 2s infinite ease-in-out; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        .card-front {
+            background-size: cover; background-position: center;
+            transform: rotateY(180deg);
+        }
+
+        .holo-effect {
+            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(135deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 70%);
+            opacity: 0; pointer-events: none; transition: opacity 0.3s; mix-blend-mode: overlay;
+        }
+
+        .sparkle {
+            position: absolute; width: 12px; height: 12px;
+            background: radial-gradient(circle, #fff 10%, var(--gold-sparkle) 60%, transparent 100%);
+            border-radius: 50%; pointer-events: none; z-index: 300;
+            top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            box-shadow: 0 0 15px var(--gold-sparkle);
+            animation: sparkleExplosion 1s ease-out forwards;
+        }
+        @keyframes sparkleExplosion {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(1.8); opacity: 0; }
+        }
+
+        .flipped-state { transform: rotateY(180deg); }
+        .sliding-state { transform: translateX(200vw) rotate(15deg) !important; opacity: 0; pointer-events: none; }
+        .non-clickable { pointer-events: none; }
+
+        /* --- GRID FINAL --- */
+        .final-grid-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+            padding: 20px; z-index: 30; opacity: 0; transition: opacity 0.5s ease-in;
+        }
+        .grid-cards-wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; width: 100%; }
+        
+        .grid-card {
+            width: 46vw; height: 64vw; max-width: 200px; max-height: 280px;
+            border-radius: 12px; background-size: cover; background-position: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5); border: 3px solid white; cursor: zoom-in;
+            opacity: 0; transform: translateY(20px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .grid-card:hover {
+            transform: translateY(0) scale(1.1);
+            box-shadow: 0 0 20px var(--neon-pink), 0 0 40px var(--neon-glow);
+            border-color: var(--neon-pink); z-index: 10;
+        }
+
+        /* --- BOTONES --- */
+        .action-buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap; 
+        }
+
+        .btn-general {
+            background: white; color: #121212; padding: 15px 25px;
+            border-radius: 30px; font-weight: bold; border: none;
+            font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 15px rgba(255,255,255,0.3);
+            text-transform: uppercase; letter-spacing: 1px;
+            transition: transform 0.2s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-general:active { transform: scale(0.95); }
+
+        .btn-start {
+            position: absolute; bottom: 12%;
+            background: linear-gradient(to right, #ff758c, #ff7eb3);
+            color: white; padding: 18px 60px; border-radius: 50px; font-weight: bold; font-size: 1.4rem;
+            border: none; cursor: pointer; box-shadow: 0 8px 25px rgba(255, 117, 140, 0.6);
+            z-index: 50; transition: opacity 0.5s, transform 0.2s;
+        }
+        .btn-start:active { transform: scale(0.95); }
+
+        .instruction {
+            position: absolute; top: 10%; color: white; font-size: 1.8rem; text-align: center;
+            width: 100%; text-shadow: 0 3px 8px rgba(0,0,0,0.8); opacity: 0; pointer-events: none; transition: opacity 0.5s; z-index: 50;
+        }
+        .flash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.3s;
+        }
+        .lightbox {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; transition: opacity 0.3s;
+        }
+        .lightbox img { max-width: 95%; max-height: 90vh; border-radius: 16px; transform: scale(0.9); transition: transform 0.3s; box-shadow: 0 0 50px rgba(255,255,255,0.2); }
+        .lightbox.active { display: flex; opacity: 1; }
+        .lightbox.active img { transform: scale(1); }
+
+        /* --- CABECERA --- */
+        .view-header {
+            width: 100%;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .view-title { 
+            font-size: 1.8rem; 
+            font-weight: bold; 
+            color: white; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .btn-back { 
+            background: none; 
+            border: none; 
+            font-size: 1.5rem; 
+            cursor: pointer; 
+            color: white;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        /* --- VISTA 2: KANDIDEX --- */
+        #view-kandidex {
+            background: transparent;
+            overflow-y: auto; 
+            display: none; 
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding-top: 20px;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 200;
+        }
+
+        .dex-grid {
+            display: grid;
+            width: 100%;
+            padding: 15px;
+            gap: 10px;
+            grid-template-columns: repeat(3, 1fr);
+            padding-bottom: 50px;
+        }
+
+        @media (min-width: 768px) {
+            .dex-grid {
+                grid-template-columns: repeat(5, 1fr);
+                padding: 40px;
+                gap: 20px;
+            }
+        }
+
+        .dex-card {
+            aspect-ratio: 2.5 / 3.5;
+            background-color: #2a2a2a;
+            background-size: cover;
+            background-position: center;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            position: relative;
+            border: 2px solid transparent;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            overflow: hidden; 
+        }
+        
+        .dex-card.card-shine::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 300%; 
+            height: 100%;
+            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.4) 60%, transparent 70%);
+            animation: singleLightPass 3s infinite ease-in-out;
+            animation-delay: var(--shine-delay);
+            pointer-events: none;
+            z-index: 1;
+            will-change: transform;
+        }
+        
+        .dex-card:hover { 
+            transform: scale(1.1); 
+            z-index: 10; 
+            box-shadow: 0 0 15px var(--neon-pink), 0 0 30px var(--neon-glow);
+            border-color: var(--neon-pink);
+        }
+
+        .dex-num {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 2px 0;
+            border-radius: 0 0 8px 8px;
+            z-index: 5; 
+        }
+
+        /* --- VISTA 3: RECUERDOS (Diseño Vertical) --- */
+        #view-recuerdos {
+            background: transparent;
+            overflow-y: auto; 
+            display: none; 
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding-top: 20px;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 200;
+        }
+
+        /* Contenedor flexible vertical para las imágenes de tamaño original */
+        .memories-feed {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            padding: 20px;
+            gap: 40px;
+            padding-bottom: 100px;
+        }
+
+        /* Tarjeta de recuerdo personalizada */
+        .memory-card {
+            position: relative;
+            width: auto;
+            max-width: 90%; /* Móvil: no desbordar */
+            border-radius: 12px;
+            background-color: #2a2a2a;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 2px solid transparent;
+            overflow: hidden;
+            cursor: zoom-in;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* En PC limitamos el ancho máximo para que no sean gigantescas */
+        @media (min-width: 768px) {
+            .memory-card {
+                max-width: 600px;
+            }
+        }
+
+        /* Imagen dentro de la tarjeta (mantiene proporción original) */
+        .memory-card img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        /* Efecto Hover y Brillo (Reutilizado) */
+        .memory-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px var(--neon-pink), 0 0 40px var(--neon-glow);
+            border-color: var(--neon-pink);
+            z-index: 10;
+        }
+
+        /* Brillo en recuerdos */
+        .memory-card.card-shine::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 300%; 
+            height: 100%;
+            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.4) 60%, transparent 70%);
+            animation: singleLightPass 4s infinite ease-in-out; /* Un poco más lento por ser grandes */
+            animation-delay: var(--shine-delay);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Etiqueta de texto opcional */
+        .memory-label {
+            position: absolute;
+            bottom: 0; width: 100%;
+            padding: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            text-align: center;
+            font-weight: bold;
+            z-index: 5;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- VISTA DE APERTURA -->
+    <div id="view-opening" class="view-section active">
+        <div class="instruction" id="instruction">⮕ DESLIZA PARA ROMPER ⮕</div>
+        
+        <div class="pack-container idle" id="pack">
+            <div class="global-shine" id="globalShine"></div>
+            <div class="pack-top" id="packTop"></div>
+            <div class="rip-line" id="ripLine"></div>
+            <div class="pack-body"></div>
+        </div>
+
+        <div class="cards-area" id="cardsArea"></div>
+
+        <div class="final-grid-container" id="finalGrid">
+            <div class="grid-cards-wrapper" id="gridWrapper"></div>
+            <div class="action-buttons">
+                <button class="btn-general" onclick="restartGame()"><span>↻</span> Repetir Magia</button>
+                <button class="btn-general" onclick="openKandidex()"><span>🎴</span> Kandidex</button>
+                <button class="btn-general" onclick="openRecuerdos()"><span>📷</span> Recuerdos</button>
+            </div>
+        </div>
+
+        <button class="btn-start" id="btnStart" onclick="startExperience()">ABRIR REGALO</button>
+        <div class="flash" id="flash"></div>
+    </div>
+
+    <!-- VISTA DE KANDIDEX -->
+    <div id="view-kandidex" class="view-section">
+        <div class="view-header">
+            <button class="btn-back" onclick="closeSection('view-kandidex')">⬅</button>
+            <div class="view-title">My Cards</div>
+            <div style="width: 24px;"></div> 
+        </div>
+        <div class="dex-grid" id="dexGrid"></div>
+    </div>
+
+    <!-- VISTA DE RECUERDOS -->
+    <div id="view-recuerdos" class="view-section">
+        <div class="view-header">
+            <button class="btn-back" onclick="closeSection('view-recuerdos')">⬅</button>
+            <div class="view-title">Recuerdos</div>
+            <div style="width: 24px;"></div> 
+        </div>
+        <!-- Contenedor flexible vertical -->
+        <div class="memories-feed" id="memoriesFeed"></div>
+    </div>
+
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <img id="lightboxImg" src="" alt="Carta Grande">
+    </div>
+
+    <script>
+        // Configuración de cartas de juego
+        const cardImages = ['152.png', '153.png', '154.png', '155.png', '156.png'];
+        
+        // Imágenes de Recuerdos (Agregado recuerdo4.png)
+        const memoryImages = ['recuerdo1.png', 'recuerdo2.png', 'recuerdo3.png', 'recuerdo4.png'];
+
+        // DOM Elements
+        const viewOpening = document.getElementById('view-opening');
+        const viewKandidex = document.getElementById('view-kandidex');
+        const viewRecuerdos = document.getElementById('view-recuerdos');
+        const dexGrid = document.getElementById('dexGrid');
+        const memoriesFeed = document.getElementById('memoriesFeed');
+        
+        const pack = document.getElementById('pack');
+        const packTop = document.getElementById('packTop');
+        const globalShine = document.getElementById('globalShine');
+        const btnStart = document.getElementById('btnStart');
+        const instruction = document.getElementById('instruction');
+        const ripLine = document.getElementById('ripLine');
+        const cardsArea = document.getElementById('cardsArea');
+        const finalGrid = document.getElementById('finalGrid');
+        const gridWrapper = document.getElementById('gridWrapper');
+        const flash = document.getElementById('flash');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+
+        let isDraggingPack = false, startPackX = 0, startPackY = 0;
+        let packOpened = false;
+        let canInteractPack = false;
+        let currentCardIndex = 0;
+        let isAnimatingCard = false;
+
+        function playSound(name) {
+            const audio = new Audio(name);
+            audio.volume = 0.5;
+            audio.play().catch(e => console.log("Audio error:", e));
+        }
+
+        // --- NAVEGACIÓN GENERAL ---
+        function openKandidex() {
+            openSection(viewKandidex);
+            if (dexGrid.children.length === 0) populateKandidex();
+        }
+
+        function openRecuerdos() {
+            openSection(viewRecuerdos);
+            if (memoriesFeed.children.length === 0) populateRecuerdos();
+        }
+
+        function openSection(section) {
+            playSound('select.mp3');
+            viewOpening.classList.remove('active');
+            viewOpening.style.display = 'none';
+            section.style.display = 'flex';
+            setTimeout(() => section.classList.add('active'), 10);
+        }
+
+        function closeSection(sectionId) {
+            playSound('select.mp3');
+            const section = document.getElementById(sectionId);
+            section.classList.remove('active');
+            setTimeout(() => {
+                section.style.display = 'none';
+                viewOpening.style.display = 'flex';
+                setTimeout(() => viewOpening.classList.add('active'), 10);
+            }, 400);
+        }
+
+        // --- POPULATE KANDIDEX ---
+        function populateKandidex() {
+            const total = 156; 
+            for (let i = 1; i <= total; i++) {
+                const card = document.createElement('div');
+                card.className = 'dex-card card-shine';
+                const imgSrc = `${i}.png`; 
+                card.style.backgroundImage = `url('${imgSrc}')`;
+                
+                const randomDelay = Math.random() * 3; 
+                card.style.setProperty('--shine-delay', `${randomDelay}s`);
+                
+                card.innerHTML = `<div class="dex-num">#${i}</div>`;
+                
+                card.onclick = () => {
+                    card.classList.remove('card-shine');
+                    openLightbox(imgSrc);
+                };
+                dexGrid.appendChild(card);
+            }
+        }
+
+        // --- POPULATE RECUERDOS (NUEVO LÓGICA VERTICAL & TAMAÑO ORIGINAL) ---
+        function populateRecuerdos() {
+            memoryImages.forEach((imgName, index) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card card-shine';
+                
+                // Retraso aleatorio para brillo
+                const randomDelay = Math.random() * 3; 
+                card.style.setProperty('--shine-delay', `${randomDelay}s`);
+
+                // Usamos IMG tag para respetar el tamaño real
+                const img = document.createElement('img');
+                img.src = imgName;
+                img.alt = `Recuerdo ${index + 1}`;
+                
+                const label = document.createElement('div');
+                label.className = 'memory-label';
+                label.innerText = `Recuerdo #${index + 1}`;
+
+                card.appendChild(img);
+                card.appendChild(label);
+
+                // Clic: quitar brillo y abrir zoom
+                card.onclick = () => {
+                    card.classList.remove('card-shine');
+                    openLightbox(imgName);
+                };
+
+                memoriesFeed.appendChild(card);
+            });
+        }
+
+        // --- LÓGICA DE JUEGO (Igual que antes) ---
+        function triggerGoldExplosion(container) {
+            for (let i = 0; i < 35; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 150 + Math.random() * 180; 
+                const tx = Math.cos(angle) * velocity + 'px';
+                const ty = Math.sin(angle) * velocity + 'px';
+                sparkle.style.setProperty('--tx', tx);
+                sparkle.style.setProperty('--ty', ty);
+                container.appendChild(sparkle);
+                setTimeout(() => sparkle.remove(), 1000);
+            }
+        }
+
+        function startExperience() {
+            playSound('select.mp3');
+            btnStart.style.opacity = "0";
+            setTimeout(() => btnStart.style.display = "none", 500);
+            pack.classList.remove('idle');
+            setTimeout(() => {
+                ripLine.style.display = "block";
+                instruction.style.opacity = "1";
+                canInteractPack = true;
+                initPackDrag();
+            }, 800);
+        }
+
+        function restartGame() {
+            playSound('select.mp3');
+            setTimeout(() => { location.reload(); }, 300);
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (!packOpened && pack.style.display !== 'none' && !isDraggingPack) {
+                const x = (window.innerWidth / 2 - e.pageX) / 20;
+                const y = (window.innerHeight / 2 - e.pageY) / 20;
+                pack.style.transform = `rotateY(${-x}deg) rotateX(${y}deg)`;
+            }
+        });
+
+        function initPackDrag() {
+            const handleStart = (x, y) => {
+                if (!canInteractPack || packOpened) return;
+                isDraggingPack = true; startPackX = x; startPackY = y;
+                packTop.style.transition = 'none';
+            };
+            const handleMove = (x, y) => {
+                if (!isDraggingPack) return;
+                const deltaX = x - startPackX;
+                const deltaY = y - startPackY;
+                if (deltaX > 0) packTop.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${deltaX/8}deg)`;
+                if (deltaX > 100) completeRip();
+            };
+            const handleEnd = () => {
+                if (!isDraggingPack) return;
+                isDraggingPack = false;
+                if (!packOpened) {
+                    packTop.style.transition = 'transform 0.3s ease-out';
+                    packTop.style.transform = 'translate(0, 0) rotate(0)';
+                }
+            };
+            window.addEventListener('mousedown', e => handleStart(e.clientX, e.clientY));
+            window.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
+            window.addEventListener('mouseup', handleEnd);
+            window.addEventListener('touchstart', e => handleStart(e.touches[0].clientX, e.touches[0].clientY));
+            window.addEventListener('touchmove', e => handleMove(e.touches[0].clientX, e.touches[0].clientY));
+            window.addEventListener('touchend', handleEnd);
+        }
+
+        function completeRip() {
+            packOpened = true; isDraggingPack = false; canInteractPack = false;
+            globalShine.style.opacity = "0";
+            packTop.style.transition = 'transform 0.5s ease-out';
+            packTop.style.transform = 'translate(150%, -50%) rotate(45deg)';
+            instruction.style.opacity = "0"; ripLine.style.display = "none";
+            playSound('Sobre.mp3');
+            setTimeout(() => {
+                flash.style.opacity = "1";
+                setTimeout(() => {
+                    pack.style.display = "none";
+                    spawnCards();
+                    flash.style.opacity = "0";
+                }, 300);
+            }, 400);
+        }
+
+        function spawnCards() {
+            cardsArea.style.display = "flex";
+            currentCardIndex = 0;
+            for (let i = 0; i < cardImages.length; i++) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'card-wrapper';
+                wrapper.style.zIndex = 50 - i;
+                wrapper.id = `card-${i}`;
+                if (i > 0) wrapper.classList.add('non-clickable');
+                const inner = document.createElement('div');
+                inner.className = 'card-inner';
+                wrapper.style.transform = `rotateZ(${(Math.random() - 0.5) * 5}deg)`;
+                inner.innerHTML = `<div class="card-face card-back"></div><div class="card-face card-front" style="background-image: url('${cardImages[i]}')"><div class="holo-effect"></div></div>`;
+                wrapper.appendChild(inner);
+                wrapper.onclick = () => handleCardInteraction(wrapper, inner, i);
+                cardsArea.appendChild(wrapper);
+            }
+        }
+
+        function handleCardInteraction(wrapper, inner, index) {
+            if (isAnimatingCard) return; 
+            if (index !== currentCardIndex) return;
+            const isFlipped = inner.classList.contains('flipped-state');
+            if (!isFlipped) {
+                isAnimatingCard = true;
+                inner.classList.add('flipped-state');
+                if (index === 0) playSound('pull1star.mp3');
+                else if (index === 1 || index === 2) playSound('pull2.mp3');
+                else if (index === 3) playSound('pull4.mp3');
+                else if (index === 4) { playSound('pull5.mp3'); triggerGoldExplosion(inner); }
+                const holo = inner.querySelector('.holo-effect');
+                if(holo) holo.style.opacity = "0.7";
+                if (navigator.vibrate) navigator.vibrate(20);
+                setTimeout(() => { isAnimatingCard = false; }, 600);
+            } else {
+                performSlide(wrapper);
+            }
+        }
+
+        function performSlide(wrapper) {
+            isAnimatingCard = true;
+            playSound('nextcard.mp3');
+            wrapper.classList.add('sliding-state');
+            setTimeout(() => {
+                currentCardIndex++;
+                if (currentCardIndex < cardImages.length) {
+                    const nextWrapper = document.getElementById(`card-${currentCardIndex}`);
+                    if (nextWrapper) {
+                        nextWrapper.classList.remove('non-clickable');
+                        nextWrapper.style.zIndex = 100;
+                    }
+                    isAnimatingCard = false;
+                } else {
+                    finishGame();
+                }
+            }, 1200);
+        }
+
+        function finishGame() {
+            cardsArea.style.transition = "opacity 0.5s";
+            cardsArea.style.opacity = "0";
+            setTimeout(() => {
+                cardsArea.style.display = "none";
+                finalGrid.style.display = "flex";
+                void finalGrid.offsetWidth;
+                finalGrid.style.opacity = "1";
+                for(let i = 0; i < cardImages.length; i++) {
+                    const gridCard = document.createElement('div');
+                    gridCard.className = 'grid-card';
+                    const imgSrc = cardImages[i];
+                    gridCard.style.backgroundImage = `url('${imgSrc}')`;
+                    gridCard.onclick = () => openLightbox(imgSrc);
+                    gridWrapper.appendChild(gridCard);
+                    setTimeout(() => {
+                        gridCard.style.opacity = 1;
+                        gridCard.style.transform = 'translateY(0)';
+                    }, i * 150);
+                }
+            }, 500);
+        }
+
+        function openLightbox(src) { lightboxImg.src = src; lightbox.classList.add('active'); }
+        function closeLightbox() { lightbox.classList.remove('active'); }
+    </script>
+</body>
+</html>
